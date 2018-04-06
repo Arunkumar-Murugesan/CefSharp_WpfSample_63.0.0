@@ -1,4 +1,5 @@
 ﻿using CefSharpBrowserSample.CommonUtils;
+using CefSharpBrowserSample.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,11 +21,20 @@ namespace CefSharpBrowserSample
     /// </summary>
     public partial class CefSharpBindingDialog : Window
     {
+        SupportVM supportVM = new SupportVM();
         public CefSharpBindingDialog()
         {
             InitializeComponent();
-            //new CefSharpBrowserExtension(cefBrowser);
+            cefBrowserRTE.IsBrowserInitializedChanged += CefBrowserRTE_IsBrowserInitializedChanged;
+            new CefSharpBrowserExtension(cefBrowserRTE);
+        }
 
+        private void CefBrowserRTE_IsBrowserInitializedChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if(!cefBrowserRTE.IsBrowserInitialized)
+            {
+                throw new Exception("Browser is not yet initialized");
+            }
         }
     }
 }

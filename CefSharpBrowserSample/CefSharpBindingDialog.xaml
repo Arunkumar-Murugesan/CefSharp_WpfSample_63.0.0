@@ -12,10 +12,10 @@
         <support:SupportVM/>
     </Window.DataContext>
     <Grid Width="600" Height="200">
-        <!--<cefSharp:ChromiumWebBrowser Name="cefBrowser" HorizontalAlignment="Center"
+        <cefSharp:ChromiumWebBrowser Name="cefBrowserRTE" HorizontalAlignment="Center"
                                      commonutl:CefSharpBrowserContent.Html="{Binding LoadHTMLDetails,
                                                                                  Mode=TwoWay,
-                                                                                 UpdateSourceTrigger=PropertyChanged}"/>-->
-        <TextBlock HorizontalAlignment="Center" Text="{Binding LoadHTMLDetails,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+                                                                                 UpdateSourceTrigger=PropertyChanged}"/>
+        <!--<TextBlock HorizontalAlignment="Center" Text="{Binding LoadHTMLDetails,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>-->
     </Grid>
 </Window>
