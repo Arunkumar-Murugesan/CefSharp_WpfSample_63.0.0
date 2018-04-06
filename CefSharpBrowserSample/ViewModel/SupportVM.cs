@@ -5,22 +5,72 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace CefSharpBrowserSample.ViewModel
 {
-    public class SupportVM : ViewModelBase,INotifyPropertyChanged
+    public class SupportVM : INotifyPropertyChanged
 
         {
-        /// </summary>
-        private string _updateHistory = "<html><head></head><body><hl>Hello World</h1></body></html>";
-        public string UpdateHistory
+        public string _loadHTMLDetails = "";
+        public string LoadHTMLDetails
         {
-            get { return _updateHistory; }
+            get { return _loadHTMLDetails; }
             set
             {
-                this._updateHistory = value;
-                this.RaisePropertyChanged("UpdateHistory");
+                _loadHTMLDetails = value;
+                OnPropertyChanged("LoadHTMLDetails");
             }
+        }
+
+        #region INotify Property Change Implementation
+
+        /// <summary>
+        /// On Property change event
+        /// </summary>
+        /// <param name="propertyName"></param>
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            var handler = PropertyChanged;
+            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        /// <summary>
+        /// Property change event
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        #endregion
+
+        /// <summary>
+        ///Gets or sets the command for load content
+        /// </summary>
+        /// 
+        private ICommand _commandLoadContent;
+        public ICommand CommandLoadContent
+        {
+            get
+            {
+                if (this._commandLoadContent == null)
+                {
+                    this._commandLoadContent = new RelayCommand(this.LoadContent, CanLoadContent);
+                }
+                return this._commandLoadContent;
+            }
+        }
+        CefSharpBindingDialog browserBindingWindow = null;
+        private void LoadContent()
+        {
+            LoadHTMLDetails = "<html><head></head><body><h1>Hello, World!</h1></body></html";
+            browserBindingWindow = new CefSharpBindingDialog();
+            browserBindingWindow.DataContext = this;
+            browserBindingWindow.Owner = System.Windows.Application.Current != null ? System.Windows.Application.Current.MainWindow : null;
+            browserBindingWindow.ShowDialog();
+        }
+
+        private bool CanLoadContent()
+        {
+            return true;
         }
     }
 }

@@ -11,9 +11,10 @@ using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace CefSharpBrowserSample.CommonUtils
-{ /// <summary>
-  /// Implemetation of Doenload Handler
-  /// </summary>
+{
+    /// <summary>
+    /// Implemetation of Doenload Handler
+    /// </summary>
     public class DownloadHandler : IDownloadHandler
     {
         public void OnBeforeDownload(IBrowser browser, DownloadItem downloadItem, IBeforeDownloadCallback callback)
@@ -56,7 +57,7 @@ namespace CefSharpBrowserSample.CommonUtils
             }
             catch (Exception ex)
             {
-
+                //new ErrorLog().LogExceptionMessageToFile("CefSharpBrowserExtensions.cs - LifeSpanHandler()" + ex.StackTrace);
             }
             newBrowser = null;
             return true;
@@ -106,15 +107,16 @@ namespace CefSharpBrowserSample.CommonUtils
             try
             {
                 var webBrowser = dependencyObject as CefSharp.Wpf.ChromiumWebBrowser;
-                if (webBrowser != null && e.NewValue != null)
+                if (webBrowser != null && e.NewValue != null && webBrowser.IsBrowserInitialized)
                     if (string.IsNullOrEmpty(e.NewValue.ToString()))
                     {
                         webBrowser.LoadHtml(string.Empty, "http://example/");
                     }
                     else
                     {
-                        if (webBrowser.IsBrowserInitialized)
-                            webBrowser.LoadHtml(e.NewValue as string, "http://example/");
+                        webBrowser.LoadHtml(e.NewValue as string, "http://example/");
+
+                        HideScriptErrors(webBrowser, true);
                     }
             }
             catch (Exception ex)
@@ -123,6 +125,17 @@ namespace CefSharpBrowserSample.CommonUtils
             }
         }
 
+        /// <summary>
+        /// This method is used ignore script error for web browser control
+        /// </summary>
+        private static void HideScriptErrors(CefSharp.Wpf.ChromiumWebBrowser wb, bool hide)
+        {
+            System.Reflection.FieldInfo fieldComWebBrowser = typeof(CefSharp.Wpf.ChromiumWebBrowser).GetField("_axIWebBrowser2", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (fieldComWebBrowser == null) return;
+            object objComWebBrowser = fieldComWebBrowser.GetValue(wb);
+            if (objComWebBrowser == null) return;
+            objComWebBrowser.GetType().InvokeMember("Silent", BindingFlags.SetProperty, null, objComWebBrowser, new object[] { hide });
+        }
     }
 
     /// <summary>
@@ -145,13 +158,64 @@ namespace CefSharpBrowserSample.CommonUtils
             browser.ContextMenu.Items.Add(new MenuItem() { Header = "Select All", Command = browser.SelectAllCommand });
             browser.ContextMenu.Items.Add(new MenuItem() { Header = "Copy", Command = browser.CopyCommand });
             browser.ContextMenu.Items.Add(new MenuItem() { Header = "View Source", Command = browser.ViewSourceCommand });
-            browser.IsBrowserInitializedChanged += BrowserHtmlEditor_IsBrowserInitializedChanged;
+            //browser.ContextMenu.Items.Add(new MenuItem() { Header = "Zoom In", Command = browser.ZoomInCommand });
+            //browser.ContextMenu.Items.Add(new MenuItem() { Header = "Zoom Out", Command = browser.ZoomOutCommand });
+            //browser.ContextMenu.Items.Add(new MenuItem() { Header = "Reset", Command = browser.ZoomResetCommand });
+            browser.MouseWheel += OnMouseWheel;
+            browser.PreviewKeyDown += OnKPreviewKeyDown;
+            browser.PreviewKeyUp += OnPreviewKeyUp;
         }
 
-        private void BrowserHtmlEditor_IsBrowserInitializedChanged(object sender, DependencyPropertyChangedEventArgs e)
+        private void OnPreviewKeyUp(object sender, KeyEventArgs e)
         {
-            if (!browser.IsBrowserInitialized)
-                throw new Exception("Browser not initialized");
+            try
+            {
+                if (e.Key == Key.RightCtrl || e.Key == Key.LeftCtrl)
+                {
+                    isControlKeyPressed = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                //new ErrorLog().LogExceptionMessageToFile("CefSharpBrowserExtensions.cs - OnPreviewKeyUp()" + ex.StackTrace);
+            }
+        }
+
+        private void OnKPreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            try
+            {
+                if (e.Key == Key.RightCtrl || e.Key == Key.LeftCtrl)
+                {
+                    isControlKeyPressed = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                //   new ErrorLog().LogExceptionMessageToFile("CefSharpBrowserExtensions.cs - OnKPreviewKeyDown()" + ex.StackTrace);
+            }
+        }
+
+        private void OnMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            try
+            {
+                if (isControlKeyPressed)
+                {
+                    if (e.Delta > 0 && browser.ZoomLevel < maxZoomLevel)
+                    {
+                        browser.ZoomInCommand.Execute(null);
+                    }
+                    else if (e.Delta < 0 && browser.ZoomLevel > minZoomLevel)
+                    {
+                        browser.ZoomOutCommand.Execute(null);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                //new ErrorLog().LogExceptionMessageToFile("CefSharpBrowserExtensions.cs - OnMouseWheel()" + ex.StackTrace);
+            }
         }
 
     }
