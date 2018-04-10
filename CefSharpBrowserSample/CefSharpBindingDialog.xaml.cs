@@ -25,16 +25,7 @@ namespace CefSharpBrowserSample
         public CefSharpBindingDialog()
         {
             InitializeComponent();
-            cefBrowserRTE.IsBrowserInitializedChanged += CefBrowserRTE_IsBrowserInitializedChanged;
             new CefSharpBrowserExtension(cefBrowserRTE);
-        }
-
-        private void CefBrowserRTE_IsBrowserInitializedChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if(!cefBrowserRTE.IsBrowserInitialized)
-            {
-                throw new Exception("Browser is not yet initialized");
-            }
         }
     }
 }

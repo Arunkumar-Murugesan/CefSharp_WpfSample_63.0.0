@@ -107,17 +107,40 @@ namespace CefSharpBrowserSample.CommonUtils
             try
             {
                 var webBrowser = dependencyObject as CefSharp.Wpf.ChromiumWebBrowser;
-                if (webBrowser != null && e.NewValue != null && webBrowser.IsBrowserInitialized)
-                    if (string.IsNullOrEmpty(e.NewValue.ToString()))
+
+                if (webBrowser != null && e.NewValue != null)
+                {
+                    var url = e.NewValue.ToString();
+                    //Browser is initialized, so we'll load the Url
+                    if (webBrowser.IsBrowserInitialized)
                     {
-                        webBrowser.LoadHtml(string.Empty, "http://example/");
+                        if (string.IsNullOrEmpty(url))
+                        {
+                            webBrowser.Load("data:text/html,Invalid Url Specified");
+                        }
+                        else
+                        {
+                            webBrowser.LoadHtml(url, "http://example/");
+                        }
                     }
                     else
                     {
-                        webBrowser.LoadHtml(e.NewValue as string, "http://example/");
+                        //Browser is not initliazed we'll wait then load
+                        DependencyPropertyChangedEventHandler handler = null;
+                        handler = (sender, args) =>
+                        {
+                            webBrowser.IsBrowserInitializedChanged -= handler;
 
-                        HideScriptErrors(webBrowser, true);
+                            //If browser is intialized then it's safe to load
+                            if (webBrowser.IsBrowserInitialized)
+                            {
+                                webBrowser.LoadHtml(url, "http://example/");
+                            }
+                        };
+
+                        webBrowser.IsBrowserInitializedChanged += handler;
                     }
+                }
             }
             catch (Exception ex)
             {
